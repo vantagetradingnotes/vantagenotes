@@ -1,0 +1,444 @@
+﻿    ?column?    
+----------------
+ --- TABLES ---
+(1 riga)
+
+ schemaname |     tablename     
+------------+-------------------
+ public     | account_snapshots
+ public     | backtest_sessions
+ public     | executions
+ public     | futures_contracts
+ public     | goals
+ public     | instruments
+ public     | journal_entries
+ public     | market_data
+ public     | orders
+ public     | profiles
+ public     | prop_accounts
+ public     | prop_firms
+ public     | strategies
+ public     | tag_categories
+ public     | tags
+ public     | trade_tags
+ public     | trades
+ public     | trading_accounts
+ public     | trading_days
+(19 righe)
+
+  ?column?   
+-------------
+ --- RLS ---
+(1 riga)
+
+ schemaname |     tablename     | rowsecurity 
+------------+-------------------+-------------
+ public     | account_snapshots | t
+ public     | backtest_sessions | t
+ public     | executions        | t
+ public     | futures_contracts | f
+ public     | goals             | t
+ public     | instruments       | f
+ public     | journal_entries   | t
+ public     | market_data       | t
+ public     | orders            | t
+ public     | profiles          | t
+ public     | prop_accounts     | t
+ public     | prop_firms        | t
+ public     | strategies        | t
+ public     | tag_categories    | t
+ public     | tags              | t
+ public     | trade_tags        | t
+ public     | trades            | t
+ public     | trading_accounts  | t
+ public     | trading_days      | t
+(19 righe)
+
+     ?column?     
+------------------
+ --- POLICIES ---
+(1 riga)
+
+ schemaname |     tablename     |        policyname        | permissive |  roles   | cmd |                            qual                             | with_check 
+------------+-------------------+--------------------------+------------+----------+-----+-------------------------------------------------------------+------------
+ public     | account_snapshots | account_snapshots_policy | PERMISSIVE | {public} | ALL | (account_id IN ( SELECT trading_accounts.id                +| 
+            |                   |                          |            |          |     |    FROM trading_accounts                                   +| 
+            |                   |                          |            |          |     |   WHERE (trading_accounts.user_id = auth.uid())))           | 
+ public     | backtest_sessions | backtest_sessions_policy | PERMISSIVE | {public} | ALL | (user_id = auth.uid())                                      | 
+ public     | executions        | executions_policy        | PERMISSIVE | {public} | ALL | (order_id IN ( SELECT orders.id                            +| 
+            |                   |                          |            |          |     |    FROM orders                                             +| 
+            |                   |                          |            |          |     |   WHERE (orders.account_id IN ( SELECT trading_accounts.id +| 
+            |                   |                          |            |          |     |            FROM trading_accounts                           +| 
+            |                   |                          |            |          |     |           WHERE (trading_accounts.user_id = auth.uid()))))) | 
+ public     | goals             | goals_policy             | PERMISSIVE | {public} | ALL | (user_id = auth.uid())                                      | 
+ public     | journal_entries   | journal_entries_policy   | PERMISSIVE | {public} | ALL | (user_id = auth.uid())                                      | 
+ public     | market_data       | market_data_policy       | PERMISSIVE | {public} | ALL | (instrument_id IN ( SELECT instruments.id                  +| 
+            |                   |                          |            |          |     |    FROM instruments))                                       | 
+ public     | orders            | orders_policy            | PERMISSIVE | {public} | ALL | (account_id IN ( SELECT trading_accounts.id                +| 
+            |                   |                          |            |          |     |    FROM trading_accounts                                   +| 
+            |                   |                          |            |          |     |   WHERE (trading_accounts.user_id = auth.uid())))           | 
+ public     | profiles          | profiles_policy          | PERMISSIVE | {public} | ALL | (auth.uid() = id)                                           | 
+ public     | prop_accounts     | prop_accounts_policy     | PERMISSIVE | {public} | ALL | (prop_firm_id IN ( SELECT prop_firms.id                    +| 
+            |                   |                          |            |          |     |    FROM prop_firms                                         +| 
+            |                   |                          |            |          |     |   WHERE (prop_firms.user_id = auth.uid())))                 | 
+ public     | prop_firms        | prop_firms_policy        | PERMISSIVE | {public} | ALL | (user_id = auth.uid())                                      | 
+ public     | strategies        | strategies_policy        | PERMISSIVE | {public} | ALL | (user_id = auth.uid())                                      | 
+ public     | tag_categories    | tag_categories_policy    | PERMISSIVE | {public} | ALL | (user_id = auth.uid())                                      | 
+ public     | tags              | tags_policy              | PERMISSIVE | {public} | ALL | (category_id IN ( SELECT tag_categories.id                 +| 
+            |                   |                          |            |          |     |    FROM tag_categories                                     +| 
+            |                   |                          |            |          |     |   WHERE (tag_categories.user_id = auth.uid())))             | 
+ public     | trade_tags        | trade_tags_policy        | PERMISSIVE | {public} | ALL | (trade_id IN ( SELECT trades.id                            +| 
+            |                   |                          |            |          |     |    FROM trades                                             +| 
+            |                   |                          |            |          |     |   WHERE (trades.account_id IN ( SELECT trading_accounts.id +| 
+            |                   |                          |            |          |     |            FROM trading_accounts                           +| 
+            |                   |                          |            |          |     |           WHERE (trading_accounts.user_id = auth.uid()))))) | 
+ public     | trades            | trades_policy            | PERMISSIVE | {public} | ALL | (account_id IN ( SELECT trading_accounts.id                +| 
+            |                   |                          |            |          |     |    FROM trading_accounts                                   +| 
+            |                   |                          |            |          |     |   WHERE (trading_accounts.user_id = auth.uid())))           | 
+ public     | trading_accounts  | trading_accounts_policy  | PERMISSIVE | {public} | ALL | (user_id = auth.uid())                                      | 
+ public     | trading_days      | trading_days_policy      | PERMISSIVE | {public} | ALL | (user_id = auth.uid())                                      | 
+(17 righe)
+
+       ?column?       
+----------------------
+ --- FOREIGN KEYS ---
+(1 riga)
+
+    table_name     |  column_name  | foreign_table_name | foreign_column_name |           constraint_name            
+-------------------+---------------+--------------------+---------------------+--------------------------------------
+ account_snapshots | account_id    | trading_accounts   | id                  | account_snapshots_account_id_fkey
+ executions        | order_id      | orders             | id                  | executions_order_id_fkey
+ futures_contracts | instrument_id | instruments        | id                  | futures_contracts_instrument_id_fkey
+ market_data       | instrument_id | instruments        | id                  | market_data_instrument_id_fkey
+ orders            | account_id    | trading_accounts   | id                  | orders_account_id_fkey
+ orders            | instrument_id | instruments        | id                  | orders_instrument_id_fkey
+ orders            | strategy_id   | strategies         | id                  | orders_strategy_id_fkey
+ prop_accounts     | prop_firm_id  | prop_firms         | id                  | prop_accounts_prop_firm_id_fkey
+ tags              | category_id   | tag_categories     | id                  | tags_category_id_fkey
+ trade_tags        | tag_id        | tags               | id                  | trade_tags_tag_id_fkey
+ trade_tags        | trade_id      | trades             | id                  | trade_tags_trade_id_fkey
+ trades            | account_id    | trading_accounts   | id                  | trades_account_id_fkey
+ trades            | instrument_id | instruments        | id                  | trades_instrument_id_fkey
+ trades            | strategy_id   | strategies         | id                  | trades_strategy_id_fkey
+(14 righe)
+
+    ?column?     
+-----------------
+ --- INDEXES ---
+(1 riga)
+
+ schemaname |     tablename     |                indexname                |                                                          indexdef                                                          
+------------+-------------------+-----------------------------------------+----------------------------------------------------------------------------------------------------------------------------
+ public     | account_snapshots | account_snapshots_pkey                  | CREATE UNIQUE INDEX account_snapshots_pkey ON public.account_snapshots USING btree (id)
+ public     | backtest_sessions | backtest_sessions_pkey                  | CREATE UNIQUE INDEX backtest_sessions_pkey ON public.backtest_sessions USING btree (id)
+ public     | executions        | executions_pkey                         | CREATE UNIQUE INDEX executions_pkey ON public.executions USING btree (id)
+ public     | executions        | idx_executions_order_id                 | CREATE INDEX idx_executions_order_id ON public.executions USING btree (order_id)
+ public     | executions        | idx_executions_timestamp                | CREATE INDEX idx_executions_timestamp ON public.executions USING btree ("timestamp")
+ public     | futures_contracts | futures_contracts_pkey                  | CREATE UNIQUE INDEX futures_contracts_pkey ON public.futures_contracts USING btree (id)
+ public     | goals             | goals_pkey                              | CREATE UNIQUE INDEX goals_pkey ON public.goals USING btree (id)
+ public     | instruments       | instruments_pkey                        | CREATE UNIQUE INDEX instruments_pkey ON public.instruments USING btree (id)
+ public     | instruments       | instruments_symbol_key                  | CREATE UNIQUE INDEX instruments_symbol_key ON public.instruments USING btree (symbol)
+ public     | journal_entries   | journal_entries_pkey                    | CREATE UNIQUE INDEX journal_entries_pkey ON public.journal_entries USING btree (id)
+ public     | journal_entries   | journal_entries_user_id_date_key        | CREATE UNIQUE INDEX journal_entries_user_id_date_key ON public.journal_entries USING btree (user_id, date)
+ public     | market_data       | idx_market_data_instrument_id           | CREATE INDEX idx_market_data_instrument_id ON public.market_data USING btree (instrument_id)
+ public     | market_data       | idx_market_data_timestamp               | CREATE INDEX idx_market_data_timestamp ON public.market_data USING btree ("timestamp")
+ public     | market_data       | market_data_instrument_id_timestamp_key | CREATE UNIQUE INDEX market_data_instrument_id_timestamp_key ON public.market_data USING btree (instrument_id, "timestamp")
+ public     | market_data       | market_data_pkey                        | CREATE UNIQUE INDEX market_data_pkey ON public.market_data USING btree (id)
+ public     | orders            | idx_orders_account_id                   | CREATE INDEX idx_orders_account_id ON public.orders USING btree (account_id)
+ public     | orders            | idx_orders_instrument_id                | CREATE INDEX idx_orders_instrument_id ON public.orders USING btree (instrument_id)
+ public     | orders            | idx_orders_timestamp                    | CREATE INDEX idx_orders_timestamp ON public.orders USING btree ("timestamp")
+ public     | orders            | orders_pkey                             | CREATE UNIQUE INDEX orders_pkey ON public.orders USING btree (id)
+ public     | profiles          | profiles_pkey                           | CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)
+ public     | prop_accounts     | prop_accounts_pkey                      | CREATE UNIQUE INDEX prop_accounts_pkey ON public.prop_accounts USING btree (id)
+ public     | prop_firms        | prop_firms_pkey                         | CREATE UNIQUE INDEX prop_firms_pkey ON public.prop_firms USING btree (id)
+ public     | strategies        | strategies_pkey                         | CREATE UNIQUE INDEX strategies_pkey ON public.strategies USING btree (id)
+ public     | tag_categories    | tag_categories_pkey                     | CREATE UNIQUE INDEX tag_categories_pkey ON public.tag_categories USING btree (id)
+ public     | tag_categories    | tag_categories_user_id_name_key         | CREATE UNIQUE INDEX tag_categories_user_id_name_key ON public.tag_categories USING btree (user_id, name)
+ public     | tags              | tags_category_id_name_key               | CREATE UNIQUE INDEX tags_category_id_name_key ON public.tags USING btree (category_id, name)
+ public     | tags              | tags_pkey                               | CREATE UNIQUE INDEX tags_pkey ON public.tags USING btree (id)
+ public     | trade_tags        | trade_tags_pkey                         | CREATE UNIQUE INDEX trade_tags_pkey ON public.trade_tags USING btree (trade_id, tag_id)
+ public     | trades            | idx_trades_account_id                   | CREATE INDEX idx_trades_account_id ON public.trades USING btree (account_id)
+ public     | trades            | idx_trades_instrument_id                | CREATE INDEX idx_trades_instrument_id ON public.trades USING btree (instrument_id)
+ public     | trades            | trades_pkey                             | CREATE UNIQUE INDEX trades_pkey ON public.trades USING btree (id)
+ public     | trading_accounts  | trading_accounts_pkey                   | CREATE UNIQUE INDEX trading_accounts_pkey ON public.trading_accounts USING btree (id)
+ public     | trading_days      | trading_days_pkey                       | CREATE UNIQUE INDEX trading_days_pkey ON public.trading_days USING btree (id)
+ public     | trading_days      | trading_days_user_id_date_key           | CREATE UNIQUE INDEX trading_days_user_id_date_key ON public.trading_days USING btree (user_id, date)
+(34 righe)
+
+    ?column?     
+-----------------
+ --- COLUMNS ---
+(1 riga)
+
+    table_name     |       column_name       |        data_type         | is_nullable |  column_default   
+-------------------+-------------------------+--------------------------+-------------+-------------------
+ account_snapshots | id                      | uuid                     | NO          | gen_random_uuid()
+ account_snapshots | account_id              | uuid                     | YES         | 
+ account_snapshots | timestamp               | timestamp with time zone | NO          | 
+ account_snapshots | balance                 | numeric                  | YES         | 
+ account_snapshots | equity                  | numeric                  | YES         | 
+ account_snapshots | margin                  | numeric                  | YES         | 
+ account_snapshots | available_funds         | numeric                  | YES         | 
+ backtest_sessions | id                      | uuid                     | NO          | gen_random_uuid()
+ backtest_sessions | user_id                 | uuid                     | YES         | 
+ backtest_sessions | name                    | text                     | NO          | 
+ backtest_sessions | symbol                  | text                     | NO          | 
+ backtest_sessions | start_time              | timestamp with time zone | NO          | 
+ backtest_sessions | end_time                | timestamp with time zone | YES         | 
+ backtest_sessions | starting_balance        | numeric                  | YES         | 
+ backtest_sessions | ending_balance          | numeric                  | YES         | 
+ backtest_sessions | status                  | text                     | YES         | 'pending'::text
+ executions        | id                      | uuid                     | NO          | gen_random_uuid()
+ executions        | order_id                | uuid                     | YES         | 
+ executions        | side                    | text                     | NO          | 
+ executions        | quantity                | numeric                  | NO          | 
+ executions        | price                   | numeric                  | NO          | 
+ executions        | commission              | numeric                  | YES         | 
+ executions        | timestamp               | timestamp with time zone | NO          | 
+ futures_contracts | id                      | uuid                     | NO          | gen_random_uuid()
+ futures_contracts | instrument_id           | uuid                     | YES         | 
+ futures_contracts | root_symbol             | text                     | YES         | 
+ futures_contracts | contract_month          | text                     | YES         | 
+ futures_contracts | expiration_date         | date                     | YES         | 
+ futures_contracts | first_notice_date       | date                     | YES         | 
+ futures_contracts | last_trade_date         | date                     | YES         | 
+ futures_contracts | tick_size               | numeric                  | YES         | 
+ futures_contracts | tick_value              | numeric                  | YES         | 
+ futures_contracts | contract_multiplier     | numeric                  | YES         | 
+ futures_contracts | point_value             | numeric                  | YES         | 
+ goals             | id                      | uuid                     | NO          | gen_random_uuid()
+ goals             | user_id                 | uuid                     | YES         | 
+ goals             | name                    | text                     | NO          | 
+ goals             | description             | text                     | YES         | 
+ goals             | rule                    | text                     | YES         | 
+ goals             | target_value            | numeric                  | YES         | 
+ instruments       | id                      | uuid                     | NO          | gen_random_uuid()
+ instruments       | symbol                  | text                     | NO          | 
+ instruments       | name                    | text                     | YES         | 
+ instruments       | asset_type              | text                     | YES         | 
+ instruments       | exchange                | text                     | YES         | 
+ instruments       | currency                | text                     | YES         | 'USD'::text
+ journal_entries   | id                      | uuid                     | NO          | gen_random_uuid()
+ journal_entries   | user_id                 | uuid                     | YES         | 
+ journal_entries   | date                    | date                     | NO          | 
+ journal_entries   | market_bias             | text                     | YES         | 
+ journal_entries   | plan                    | text                     | YES         | 
+ journal_entries   | mood                    | text                     | YES         | 
+ journal_entries   | lessons                 | text                     | YES         | 
+ journal_entries   | notes                   | text                     | YES         | 
+ market_data       | id                      | uuid                     | NO          | gen_random_uuid()
+ market_data       | instrument_id           | uuid                     | YES         | 
+ market_data       | timestamp               | timestamp with time zone | NO          | 
+ market_data       | open                    | numeric                  | YES         | 
+ market_data       | high                    | numeric                  | YES         | 
+ market_data       | low                     | numeric                  | YES         | 
+ market_data       | close                   | numeric                  | YES         | 
+ market_data       | volume                  | numeric                  | YES         | 
+ orders            | id                      | uuid                     | NO          | gen_random_uuid()
+ orders            | account_id              | uuid                     | YES         | 
+ orders            | instrument_id           | uuid                     | YES         | 
+ orders            | direction               | text                     | NO          | 
+ orders            | quantity                | numeric                  | NO          | 
+ orders            | price                   | numeric                  | YES         | 
+ orders            | order_type              | text                     | NO          | 
+ orders            | status                  | text                     | NO          | 
+ orders            | timestamp               | timestamp with time zone | NO          | 
+ orders            | strategy_id             | uuid                     | YES         | 
+ orders            | notes                   | text                     | YES         | 
+ profiles          | id                      | uuid                     | NO          | 
+ profiles          | timezone                | text                     | YES         | 'UTC'::text
+ profiles          | currency                | text                     | YES         | 'USD'::text
+ profiles          | created_at              | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ prop_accounts     | id                      | uuid                     | NO          | gen_random_uuid()
+ prop_accounts     | prop_firm_id            | uuid                     | YES         | 
+ prop_accounts     | name                    | text                     | NO          | 
+ prop_accounts     | starting_balance        | numeric                  | YES         | 
+ prop_accounts     | current_balance         | numeric                  | YES         | 
+ prop_accounts     | status                  | text                     | YES         | 'active'::text
+ prop_firms        | id                      | uuid                     | NO          | gen_random_uuid()
+ prop_firms        | user_id                 | uuid                     | YES         | 
+ prop_firms        | name                    | text                     | NO          | 
+ prop_firms        | description             | text                     | YES         | 
+ prop_firms        | profit_target           | numeric                  | YES         | 
+ prop_firms        | trailing_drawdown       | numeric                  | YES         | 
+ prop_firms        | daily_loss_limit        | numeric                  | YES         | 
+ prop_firms        | consistency_rule        | text                     | YES         | 
+ strategies        | id                      | uuid                     | NO          | gen_random_uuid()
+ strategies        | user_id                 | uuid                     | YES         | 
+ strategies        | name                    | text                     | NO          | 
+ strategies        | description             | text                     | YES         | 
+ strategies        | entry_rules             | text                     | YES         | 
+ strategies        | exit_rules              | text                     | YES         | 
+ strategies        | risk_rules              | text                     | YES         | 
+ strategies        | market_conditions       | text                     | YES         | 
+ strategies        | checklist               | text                     | YES         | 
+ tag_categories    | id                      | uuid                     | NO          | gen_random_uuid()
+ tag_categories    | user_id                 | uuid                     | YES         | 
+ tag_categories    | name                    | text                     | NO          | 
+ tag_categories    | description             | text                     | YES         | 
+ tags              | id                      | uuid                     | NO          | gen_random_uuid()
+ tags              | category_id             | uuid                     | YES         | 
+ tags              | name                    | text                     | NO          | 
+ tags              | description             | text                     | YES         | 
+ trade_tags        | trade_id                | uuid                     | NO          | 
+ trade_tags        | tag_id                  | uuid                     | NO          | 
+ trades            | id                      | uuid                     | NO          | gen_random_uuid()
+ trades            | account_id              | uuid                     | YES         | 
+ trades            | instrument_id           | uuid                     | YES         | 
+ trades            | direction               | text                     | NO          | 
+ trades            | quantity                | numeric                  | NO          | 
+ trades            | entry_price             | numeric                  | YES         | 
+ trades            | exit_price              | numeric                  | YES         | 
+ trades            | entry_time              | timestamp with time zone | YES         | 
+ trades            | exit_time               | timestamp with time zone | YES         | 
+ trades            | gross_pnl               | numeric                  | YES         | 
+ trades            | commission              | numeric                  | YES         | 
+ trades            | fees                    | numeric                  | YES         | 
+ trades            | net_pnl                 | numeric                  | YES         | 
+ trades            | stop_loss               | numeric                  | YES         | 
+ trades            | take_profit             | numeric                  | YES         | 
+ trades            | planned_r               | numeric                  | YES         | 
+ trades            | realized_r              | numeric                  | YES         | 
+ trades            | mae                     | numeric                  | YES         | 
+ trades            | mfe                     | numeric                  | YES         | 
+ trades            | rating                  | integer                  | YES         | 
+ trades            | notes                   | text                     | YES         | 
+ trades            | strategy_id             | uuid                     | YES         | 
+ trades            | created_at              | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ trading_accounts  | id                      | uuid                     | NO          | gen_random_uuid()
+ trading_accounts  | user_id                 | uuid                     | YES         | 
+ trading_accounts  | name                    | text                     | NO          | 
+ trading_accounts  | broker                  | text                     | YES         | 
+ trading_accounts  | account_type            | text                     | YES         | 
+ trading_accounts  | initial_balance         | numeric                  | YES         | 
+ trading_accounts  | currency                | text                     | YES         | 'USD'::text
+ trading_accounts  | status                  | text                     | YES         | 'active'::text
+ trading_accounts  | commission_per_contract | numeric                  | YES         | 
+ trading_accounts  | exchange_fee            | numeric                  | YES         | 
+ trading_accounts  | regulatory_fee          | numeric                  | YES         | 
+ trading_accounts  | clearing_fee            | numeric                  | YES         | 
+ trading_days      | id                      | uuid                     | NO          | gen_random_uuid()
+ trading_days      | user_id                 | uuid                     | YES         | 
+ trading_days      | date                    | date                     | NO          | 
+ trading_days      | market_bias             | text                     | YES         | 
+ trading_days      | plan                    | text                     | YES         | 
+ trading_days      | mood                    | text                     | YES         | 
+ trading_days      | lessons                 | text                     | YES         | 
+ trading_days      | notes                   | text                     | YES         | 
+(153 righe)
+
+      ?column?       
+---------------------
+ --- CONSTRAINTS ---
+(1 riga)
+
+    table_name     |             constraint_name             | constraint_type 
+-------------------+-----------------------------------------+-----------------
+ account_snapshots | 2200_17665_1_not_null                   | CHECK
+ account_snapshots | 2200_17665_3_not_null                   | CHECK
+ account_snapshots | account_snapshots_account_id_fkey       | FOREIGN KEY
+ account_snapshots | account_snapshots_pkey                  | PRIMARY KEY
+ backtest_sessions | 2200_17774_1_not_null                   | CHECK
+ backtest_sessions | 2200_17774_3_not_null                   | CHECK
+ backtest_sessions | 2200_17774_4_not_null                   | CHECK
+ backtest_sessions | 2200_17774_5_not_null                   | CHECK
+ backtest_sessions | backtest_sessions_user_id_fkey          | FOREIGN KEY
+ backtest_sessions | backtest_sessions_pkey                  | PRIMARY KEY
+ executions        | 2200_17812_1_not_null                   | CHECK
+ executions        | 2200_17812_3_not_null                   | CHECK
+ executions        | 2200_17812_4_not_null                   | CHECK
+ executions        | 2200_17812_5_not_null                   | CHECK
+ executions        | 2200_17812_7_not_null                   | CHECK
+ executions        | executions_side_check                   | CHECK
+ executions        | executions_order_id_fkey                | FOREIGN KEY
+ executions        | executions_pkey                         | PRIMARY KEY
+ futures_contracts | 2200_17637_1_not_null                   | CHECK
+ futures_contracts | futures_contracts_instrument_id_fkey    | FOREIGN KEY
+ futures_contracts | futures_contracts_pkey                  | PRIMARY KEY
+ goals             | 2200_17761_1_not_null                   | CHECK
+ goals             | 2200_17761_3_not_null                   | CHECK
+ goals             | goals_user_id_fkey                      | FOREIGN KEY
+ goals             | goals_pkey                              | PRIMARY KEY
+ instruments       | 2200_17626_1_not_null                   | CHECK
+ instruments       | 2200_17626_2_not_null                   | CHECK
+ instruments       | instruments_pkey                        | PRIMARY KEY
+ instruments       | instruments_symbol_key                  | UNIQUE
+ journal_entries   | 2200_17866_1_not_null                   | CHECK
+ journal_entries   | 2200_17866_3_not_null                   | CHECK
+ journal_entries   | journal_entries_user_id_fkey            | FOREIGN KEY
+ journal_entries   | journal_entries_pkey                    | PRIMARY KEY
+ journal_entries   | journal_entries_user_id_date_key        | UNIQUE
+ market_data       | 2200_17881_1_not_null                   | CHECK
+ market_data       | 2200_17881_3_not_null                   | CHECK
+ market_data       | market_data_instrument_id_fkey          | FOREIGN KEY
+ market_data       | market_data_pkey                        | PRIMARY KEY
+ market_data       | market_data_instrument_id_timestamp_key | UNIQUE
+ orders            | 2200_17788_1_not_null                   | CHECK
+ orders            | 2200_17788_4_not_null                   | CHECK
+ orders            | 2200_17788_5_not_null                   | CHECK
+ orders            | 2200_17788_7_not_null                   | CHECK
+ orders            | 2200_17788_8_not_null                   | CHECK
+ orders            | 2200_17788_9_not_null                   | CHECK
+ orders            | orders_direction_check                  | CHECK
+ orders            | orders_account_id_fkey                  | FOREIGN KEY
+ orders            | orders_instrument_id_fkey               | FOREIGN KEY
+ orders            | orders_strategy_id_fkey                 | FOREIGN KEY
+ orders            | orders_pkey                             | PRIMARY KEY
+ profiles          | 2200_17611_1_not_null                   | CHECK
+ profiles          | profiles_id_fkey                        | FOREIGN KEY
+ profiles          | profiles_pkey                           | PRIMARY KEY
+ prop_accounts     | 2200_17747_1_not_null                   | CHECK
+ prop_accounts     | 2200_17747_3_not_null                   | CHECK
+ prop_accounts     | prop_accounts_prop_firm_id_fkey         | FOREIGN KEY
+ prop_accounts     | prop_accounts_pkey                      | PRIMARY KEY
+ prop_firms        | 2200_17734_1_not_null                   | CHECK
+ prop_firms        | 2200_17734_3_not_null                   | CHECK
+ prop_firms        | prop_firms_user_id_fkey                 | FOREIGN KEY
+ prop_firms        | prop_firms_pkey                         | PRIMARY KEY
+ strategies        | 2200_17691_1_not_null                   | CHECK
+ strategies        | 2200_17691_3_not_null                   | CHECK
+ strategies        | strategies_user_id_fkey                 | FOREIGN KEY
+ strategies        | strategies_pkey                         | PRIMARY KEY
+ tag_categories    | 2200_17704_1_not_null                   | CHECK
+ tag_categories    | 2200_17704_3_not_null                   | CHECK
+ tag_categories    | tag_categories_user_id_fkey             | FOREIGN KEY
+ tag_categories    | tag_categories_pkey                     | PRIMARY KEY
+ tag_categories    | tag_categories_user_id_name_key         | UNIQUE
+ tags              | 2200_17719_1_not_null                   | CHECK
+ tags              | 2200_17719_3_not_null                   | CHECK
+ tags              | tags_category_id_fkey                   | FOREIGN KEY
+ tags              | tags_pkey                               | PRIMARY KEY
+ tags              | tags_category_id_name_key               | UNIQUE
+ trade_tags        | 2200_17851_1_not_null                   | CHECK
+ trade_tags        | 2200_17851_2_not_null                   | CHECK
+ trade_tags        | trade_tags_tag_id_fkey                  | FOREIGN KEY
+ trade_tags        | trade_tags_trade_id_fkey                | FOREIGN KEY
+ trade_tags        | trade_tags_pkey                         | PRIMARY KEY
+ trades            | 2200_17826_1_not_null                   | CHECK
+ trades            | 2200_17826_4_not_null                   | CHECK
+ trades            | 2200_17826_5_not_null                   | CHECK
+ trades            | trades_direction_check                  | CHECK
+ trades            | trades_account_id_fkey                  | FOREIGN KEY
+ trades            | trades_instrument_id_fkey               | FOREIGN KEY
+ trades            | trades_strategy_id_fkey                 | FOREIGN KEY
+ trades            | trades_pkey                             | PRIMARY KEY
+ trading_accounts  | 2200_17650_1_not_null                   | CHECK
+ trading_accounts  | 2200_17650_3_not_null                   | CHECK
+ trading_accounts  | trading_accounts_user_id_fkey           | FOREIGN KEY
+ trading_accounts  | trading_accounts_pkey                   | PRIMARY KEY
+ trading_days      | 2200_17676_1_not_null                   | CHECK
+ trading_days      | 2200_17676_3_not_null                   | CHECK
+ trading_days      | trading_days_user_id_fkey               | FOREIGN KEY
+ trading_days      | trading_days_pkey                       | PRIMARY KEY
+ trading_days      | trading_days_user_id_date_key           | UNIQUE
+(97 righe)
+
+     ?column?     
+------------------
+ --- TRIGGERS ---
+(1 riga)
+
+ table_name | trigger_name | event_manipulation | action_statement 
+------------+--------------+--------------------+------------------
+(0 righe)
+
